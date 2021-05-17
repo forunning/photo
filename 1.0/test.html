@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>cos-album</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/cos-js-sdk-v5/dist/cos-js-sdk-v5.min.js"></script>
+</head>
+
+<body>
+    <div class="album-comments" id="comments">伍方健</div>
+</body>
+<script type="text/javascript">
+var cos = new COS({
+    SecretId: 'AKIDd5Gwyg4xhIepoY'+'SvJWSAaqtiLiz0PRV2',
+    SecretKey: 'RfcCKMDxG'+'jBNUozuZGSTFVeYibcXBYnn',
+});
+cos.getBucket({
+   Bucket: 'loveyou-1255761998', /* 必须 */
+   Region: 'ap-hongkong',     /* 存储桶所在地域，必须字段 */
+   Prefix: '',           /* 非必须 */
+   Delimiter: '/'   
+}, function(err, data) {
+   console.log(err || data.CommonPrefixes);
+});
+</script>
+
+</html>
