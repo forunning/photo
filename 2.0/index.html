@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport"
+        content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8;" />
+    <style>
+        .box {
+            margin: 10px auto;
+            column-count: 3;
+            column-gap: 10px;
+            width: 70%;
+            text-align: center;
+        }
+
+        .item {
+            margin-bottom: 10px;
+        }
+
+        .item img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .banner {
+            width: 100%;
+            height: 100%;
+            margin: 10px auto;
+        }
+
+        .banner img {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .more {
+            text-align: center
+        }
+
+        button {
+            font-family: cursive;
+            background-color: #428bca;
+            border-color: #357ebd;
+            color: #fff;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+            /* future proofing */
+            -khtml-border-radius: 10px;
+            /* for old Konqueror browsers */
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid transparent;
+            font-weight: 900;
+            font-size: 125%
+        }
+
+        @media only screen and (max-width: 600px) {
+            .box {
+                column-count: 2;
+                column-gap: 10px;
+                width: 100%;
+            }
+        }
+
+
+
+    </style>
+    <!-- 引入cos操作js -->
+    <script src="https://unpkg.com/cos-js-sdk-v5/dist/cos-js-sdk-v5.min.js"></script>
+    
+
+</head>
+
+<body>
+    <!-- <div class="banner"><img src="日常/封面.jpg"></div> -->
+    <!-- <div class="box" id="box">
+         <div class="item">
+        <img  src="images/img_1.jpg" alt="" />
+    </div> 
+    </div> -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript">
+        var cos = new COS({
+            SecretId: 'AKIDd5Gwyg4xhIepoY' + 'SvJWSAaqtiLiz0PRV2',
+            SecretKey: 'RfcCKMDxG' + 'jBNUozuZGSTFVeYibcXBYnn',
+        });
+
+        function getmore(path, page, event) {
+            cos.getBucket({
+                Bucket: 'loveyou-1255761998', /* 必须 */
+                Region: 'ap-hongkong',     /* 存储桶所在地域，必须字段 */
+                Prefix: path,           /* 非必须 */
+                // Delimiter: '/',
+            }, function (err, data) {
+                console.log(data)
+                if (data.Contents.length < (page - 1) * 8 + 2) {
+                    return;
+                } else if (data.Contents.length <= page * 8 + 1) {
+                    // console.log(event.target.innerText)
+                    for (var i = (page - 1) * 8 + 1; i < data.Contents.length; i++) {
+                        var box = window.document.getElementById(path);
+                        var div = window.document.createElement('div');
+                        div.setAttribute("class", "item")
+                        var img = document.createElement('img');
+                        img.src = data.Contents[i].Key + "?imageMogr2/thumbnail/400x/interlace/1";
+                        div.appendChild(img);
+                        box.appendChild(div);
+
+                    }
+                    event.target.attributes.page.value = -1;
+                    event.target.innerText = '我也是有底线的！'
+                }
+                else {
+                    for (var i = (page - 1) * 8 + 1; i < page * 8 + 1; i++) {
+                        if (data.Contents.length > i) {
+                            var box = window.document.getElementById(path);
+                            var div = window.document.createElement('div');
+                            div.setAttribute("class", "item")
+                            var img = document.createElement('img');
+                            img.src = data.Contents[i].Key + "?imageMogr2/thumbnail/400x/interlace/1";
+                            div.appendChild(img);
+                            box.appendChild(div);
+                        }
+
+                    }
+                    event.target.attributes.page.value = 1 + parseInt(page);
+                }
+            })
+        }
+
+        cos.getBucket({
+            Bucket: 'loveyou-1255761998', /* 必须 */
+            Region: 'ap-hongkong',     /* 存储桶所在地域，必须字段 */
+            Prefix: '',           /* 非必须 */
+            Delimiter: '/',
+            async: false
+        }, function (err, data) {
+            console.log(data.CommonPrefixes);
+            for (var i = 0; i < data.CommonPrefixes.length; i++) {
+                console.log(data.CommonPrefixes[i])
+                var div = window.document.createElement('div');
+                div.setAttribute("class", "banner")
+                var img = window.document.createElement('img');
+                img.src = data.CommonPrefixes[i].Prefix + "封面.jpg";
+                div.appendChild(img);
+                let div1 = window.document.createElement('div');
+                div1.setAttribute("class", "box");
+                div1.setAttribute("id", data.CommonPrefixes[i].Prefix);
+
+                var button = window.document.createElement('button');
+                button.setAttribute("type", "button");
+                button.setAttribute("belong", data.CommonPrefixes[i].Prefix);
+                button.setAttribute("page", 2);
+                button.onclick = function (event) {
+                    var belong = event.target.attributes.belong.value;
+                    var page = event.target.attributes.page.value;
+                    console.log(belong, page);
+                    if (parseInt(page) < 0) {
+                        return;
+                    }
+                    getmore(belong, page, event)
+                }
+                button.innerText = "加载更多";
+
+                var bdiv = window.document.createElement('div');
+                bdiv.setAttribute("class", "more");
+                bdiv.appendChild(button);
+
+                window.document.getElementsByTagName('body')[0].appendChild(div)
+                window.document.getElementsByTagName('body')[0].appendChild(div1)
+                window.document.getElementsByTagName('body')[0].appendChild(bdiv)
+
+                cos.getBucket({
+                    Bucket: 'loveyou-1255761998', /* 必须 */
+                    Region: 'ap-hongkong',     /* 存储桶所在地域，必须字段 */
+                    Prefix: data.CommonPrefixes[i].Prefix,           /* 非必须 */
+                    // Delimiter: '/',
+                }, function (err, data) {
+                    console.log(err || data);
+                    for (var i = 1; i < 9; i++) {
+                        var div = document.createElement('div');
+                        div.setAttribute("class", "item")
+                        var a = document.createElement('a');
+                        // a.setAttribute('href',data.Contents[i].Key);
+                        var img = document.createElement('img');
+                        a.onclick = function(){
+                            window.open(data.Contents[i].Key,'_blank')
+                        }
+                        img.src = data.Contents[i].Key + "?imageMogr2/thumbnail/400x/interlace/1";
+                        a.appendChild(img);
+                        div.appendChild(a);
+                        div1.appendChild(div);
+                    }
+                });
+            }
+            // getmore('南京游/', 2)
+        })
+
+    </script>
+    <SCRIPT LANGUAGE="JavaScript">
+        function password() {
+            var testV = 1;
+            var pass1 = prompt('请输入密码:', '');
+            while (testV < 3) {
+                if (!pass1)
+                    history.go(-1);
+                if (pass1 == "loveyou") {
+                    break;
+                }
+                testV += 1;
+                var pass1 =
+                    prompt('密码错误!请重新输入:');
+            }
+            if (pass1 != "password" & testV == 3)
+                history.go(-1);
+            return " ";
+        }
+        // password()
+    </SCRIPT>
+</body>
